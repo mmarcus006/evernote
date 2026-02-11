@@ -44,7 +44,8 @@ def authenticate_drive(credentials_file: Path, token_file: Path):
             if not credentials_file.exists():
                 log.error(
                     f"Credentials file not found: {credentials_file}\n"
-                    "  1. Go to Google Cloud Console -> APIs & Services -> Credentials\n"
+                    "  1. Go to Google Cloud Console -> APIs & Services"
+                    " -> Credentials\n"
                     "  2. Create OAuth 2.0 Client ID (Desktop app)\n"
                     "  3. Download JSON and save as credentials.json in project root"
                 )
@@ -83,7 +84,6 @@ def list_drive_pdfs(service, folder_id: str) -> list[dict]:
 
 def download_pdf(service, file_id: str, file_name: str, cache_dir: Path) -> Path:
     """Download a PDF from Drive, skipping if already cached."""
-    import io
 
     from googleapiclient.http import MediaIoBaseDownload
 

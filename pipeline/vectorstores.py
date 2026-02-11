@@ -103,6 +103,8 @@ def build_qdrant_collection(
     collection_name: str = COLLECTION_NAME,
     embedding_model_id: str = EMBEDDING_MODEL,
     embedding_dim: int = EMBEDDING_DIM,
+    batch_size: int = 128,
+    embedding_threads: int | None = None,
 ) -> int:
     """Chunk all documents and insert into Qdrant with FastEmbed embeddings.
 
@@ -169,12 +171,15 @@ def build_qdrant_collection(
         return 0
 
     log.info(f"Embedding {len(all_documents)} chunks with {embedding_model_id}...")
-    embedding_model = TextEmbedding(embedding_model_id)
+    embedding_model = TextEmbedding(
+        embedding_model_id,
+        threads=embedding_threads,
+    )
     embeddings = list(embedding_model.embed(all_documents))
 
-    batch_size = 64
-    for i in range(0, len(all_documents), batch_size):
-        batch_end = min(i + batch_size, len(all_documents))
+    normalized_batch_size = max(1, batch_size)
+    for i in range(0, len(all_documents), normalized_batch_size):
+        batch_end = min(i + normalized_batch_size, len(all_documents))
         points = [
             PointStruct(
                 id=i + j,

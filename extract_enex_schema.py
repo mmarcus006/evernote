@@ -44,13 +44,13 @@ def extract_schema(enex_dir: str) -> dict:
 
         if path not in schema:
             schema[path] = {
-                "attributes": {},       # attr_name -> count
+                "attributes": {},  # attr_name -> count
                 "children": set(),
                 "has_text": False,
                 "count": 0,
                 "sample_text": None,
                 "sample_attr_values": {},
-                "attr_values": {},      # attr_name -> set of unique values (capped)
+                "attr_values": {},  # attr_name -> set of unique values (capped)
             }
 
         info = schema[path]
@@ -108,7 +108,6 @@ def print_schema_report(schema: dict) -> None:
         depth = path.count("/")
         indent = "  " * depth
         tag = path.split("/")[-1]
-        optional = ""
 
         # Print element
         print(f"{indent}<{tag}> — occurs {info['count']}x")
@@ -122,7 +121,10 @@ def print_schema_report(schema: dict) -> None:
                 vals_str = ", ".join(repr(v) for v in sorted(unique_vals))
                 print(f"{indent}  @{attr}  ({cnt}x)  values: [{vals_str}]")
             else:
-                print(f"{indent}  @{attr}  ({cnt}x)  sample: {sample!r}  ({len(unique_vals)}+ unique values)")
+                print(
+                    f"{indent}  @{attr}  ({cnt}x)  sample: {sample!r}"
+                    f"  ({len(unique_vals)}+ unique values)"
+                )
 
         # Children
         if info["children"]:
@@ -141,10 +143,10 @@ def generate_xsd(schema: dict, output_path: str) -> None:
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">',
-        '',
-        '  <!-- Auto-generated XSD from Evernote .enex export files -->',
-        '  <!-- This schema was inferred from actual data, not the official DTD -->',
-        '',
+        "",
+        "  <!-- Auto-generated XSD from Evernote .enex export files -->",
+        "  <!-- This schema was inferred from actual data, not the official DTD -->",
+        "",
     ]
 
     # Build a lookup: for each element path, we know its children, attrs, text
@@ -157,7 +159,10 @@ def generate_xsd(schema: dict, output_path: str) -> None:
     def _type_name(path: str) -> str:
         """Convert a path like en-export/note/title to EnExportNoteTitleType."""
         parts = path.split("/")
-        return "".join(p.replace("-", " ").title().replace(" ", "") for p in parts) + "Type"
+        return (
+            "".join(p.replace("-", " ").title().replace(" ", "") for p in parts)
+            + "Type"
+        )
 
     def _elem_name(path: str) -> str:
         return path.split("/")[-1]
@@ -169,14 +174,12 @@ def generate_xsd(schema: dict, output_path: str) -> None:
 
     # Root element
     root_path = "en-export"
-    root_info = schema.get(root_path, {})
 
     lines.append(f'  <xs:element name="en-export" type="{_type_name(root_path)}"/>')
-    lines.append('')
+    lines.append("")
 
     for path in sorted(schema.keys()):
         info = schema[path]
-        tag = _elem_name(path)
         tname = _type_name(path)
         has_children = bool(info["children"])
         has_attrs = bool(info["attributes"])
@@ -186,15 +189,18 @@ def generate_xsd(schema: dict, output_path: str) -> None:
             if has_text and not has_children and has_attrs:
                 # Element with text content and attributes -> simpleContent extension
                 lines.append(f'  <xs:complexType name="{tname}">')
-                lines.append(f'    <xs:simpleContent>')
-                lines.append(f'      <xs:extension base="xs:string">')
+                lines.append("    <xs:simpleContent>")
+                lines.append('      <xs:extension base="xs:string">')
                 for attr in sorted(info["attributes"]):
                     required = info["attributes"][attr] >= info["count"]
-                    use = 'required' if required else 'optional'
-                    lines.append(f'        <xs:attribute name="{attr}" type="xs:string" use="{use}"/>')
-                lines.append(f'      </xs:extension>')
-                lines.append(f'    </xs:simpleContent>')
-                lines.append(f'  </xs:complexType>')
+                    use = "required" if required else "optional"
+                    lines.append(
+                        f'        <xs:attribute name="{attr}"'
+                        f' type="xs:string" use="{use}"/>'
+                    )
+                lines.append("      </xs:extension>")
+                lines.append("    </xs:simpleContent>")
+                lines.append("  </xs:complexType>")
             else:
                 if has_text and has_children:
                     lines.append(f'  <xs:complexType name="{tname}" mixed="true">')
@@ -202,7 +208,7 @@ def generate_xsd(schema: dict, output_path: str) -> None:
                     lines.append(f'  <xs:complexType name="{tname}">')
 
             if has_children:
-                lines.append(f'    <xs:sequence>')
+                lines.append("    <xs:sequence>")
                 for child_tag in sorted(info["children"]):
                     child_path = f"{path}/{child_tag}"
                     child_info = schema.get(child_path, {})
@@ -227,26 +233,27 @@ def generate_xsd(schema: dict, output_path: str) -> None:
                         f'      <xs:element name="{child_tag}"{type_ref}'
                         f' minOccurs="{min_occurs}" maxOccurs="{max_occurs}"/>'
                     )
-                lines.append(f'    </xs:sequence>')
+                lines.append("    </xs:sequence>")
 
             for attr in sorted(info["attributes"]):
-                unique_vals = info["attr_values"].get(attr, set())
                 required = info["attributes"][attr] >= info["count"]
-                use = 'required' if required else 'optional'
-                lines.append(f'    <xs:attribute name="{attr}" type="xs:string" use="{use}"/>')
+                use = "required" if required else "optional"
+                lines.append(
+                    f'    <xs:attribute name="{attr}" type="xs:string" use="{use}"/>'
+                )
 
-            lines.append(f'  </xs:complexType>')
+            lines.append("  </xs:complexType>")
         else:
             # Simple text-only element — no need for a named type,
             # referenced as xs:string inline
             pass
 
-        lines.append('')
+        lines.append("")
 
-    lines.append('</xs:schema>')
+    lines.append("</xs:schema>")
 
-    with open(output_path, 'w') as f:
-        f.write('\n'.join(lines))
+    with open(output_path, "w") as f:
+        f.write("\n".join(lines))
     print(f"  XSD written to: {output_path}")
 
 
@@ -256,24 +263,32 @@ def generate_json(schema: dict, output_path: str) -> None:
 
     for path in sorted(schema.keys()):
         info = schema[path]
-        json_schema[path] = OrderedDict([
-            ("element", path.split("/")[-1]),
-            ("occurrences", info["count"]),
-            ("attributes", {
-                attr: {
-                    "count": info["attributes"][attr],
-                    "sample": info["sample_attr_values"].get(attr, ""),
-                    "unique_values": sorted(info["attr_values"].get(attr, set()))
-                        if len(info["attr_values"].get(attr, set())) <= 10 else f"{len(info['attr_values'].get(attr, set()))}+ unique",
-                }
-                for attr in sorted(info["attributes"])
-            }),
-            ("children", sorted(info["children"])),
-            ("has_text_content", info["has_text"]),
-            ("sample_text", info["sample_text"]),
-        ])
+        json_schema[path] = OrderedDict(
+            [
+                ("element", path.split("/")[-1]),
+                ("occurrences", info["count"]),
+                (
+                    "attributes",
+                    {
+                        attr: {
+                            "count": info["attributes"][attr],
+                            "sample": info["sample_attr_values"].get(attr, ""),
+                            "unique_values": sorted(
+                                info["attr_values"].get(attr, set())
+                            )
+                            if len(info["attr_values"].get(attr, set())) <= 10
+                            else f"{len(info['attr_values'].get(attr, set()))}+ unique",
+                        }
+                        for attr in sorted(info["attributes"])
+                    },
+                ),
+                ("children", sorted(info["children"])),
+                ("has_text_content", info["has_text"]),
+                ("sample_text", info["sample_text"]),
+            ]
+        )
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(json_schema, f, indent=2, default=str)
     print(f"  JSON written to: {output_path}")
 
@@ -295,7 +310,8 @@ def main():
     json_path = os.path.join(os.path.dirname(enex_dir.rstrip("/")), "enex_schema.json")
     generate_json(schema, json_path)
 
-    print(f"\nDone. Processed {len(glob.glob(os.path.join(enex_dir, '*.enex')))} file(s).\n")
+    total_enex_files = len(glob.glob(os.path.join(enex_dir, "*.enex")))
+    print(f"\nDone. Processed {total_enex_files} file(s).\n")
 
 
 if __name__ == "__main__":

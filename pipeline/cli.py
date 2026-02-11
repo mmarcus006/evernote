@@ -10,8 +10,10 @@ Usage:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -70,6 +72,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Enable verbose logging",
     )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=min(32, os.cpu_count() or 4),
+        help="Worker threads for parallel I/O and ingestion",
+    )
+    parser.add_argument(
+        "--num-threads",
+        type=int,
+        default=max(4, os.cpu_count() or 4),
+        help="Docling/FastEmbed internal thread count",
+    )
+    parser.add_argument(
+        "--ocr-batch-size",
+        type=int,
+        default=8,
+        help="OCR batch size for Docling",
+    )
+    parser.add_argument(
+        "--embed-threads",
+        type=int,
+        default=max(4, os.cpu_count() or 4),
+        help="FastEmbed embedding thread count",
+    )
+    parser.add_argument(
+        "--vector-batch-size",
+        type=int,
+        default=128,
+        help="Vector DB upsert batch size",
+    )
+    parser.add_argument(
+        "--disable-ocr",
+        action="store_true",
+        help="Disable OCR for faster conversion on text PDFs",
+    )
     return parser.parse_args(argv)
 
 
@@ -77,7 +114,7 @@ def main(argv: list[str] | None = None) -> None:
     """Run the full pipeline."""
     from tqdm import tqdm
 
-    from .chunking import create_chunker
+    from .chunking import chunk_documents, create_chunker
     from .conversion import convert_single_pdf, create_ocr_converter
     from .nlp import init_nlp, run_nlp_analysis
     from .sources import (
@@ -122,10 +159,31 @@ def main(argv: list[str] | None = None) -> None:
         drive_files = list_drive_pdfs(service, args.folder_id)
         log.info(f"Found {len(drive_files)} PDFs")
 
-        pdf_files = []
-        for f in tqdm(drive_files, desc="Downloading"):
-            path = download_pdf(service, f["id"], f["name"], args.cache_dir)
-            pdf_files.append(path)
+        pdf_files: list[Path] = []
+        max_workers = max(1, args.max_workers)
+        if max_workers == 1 or len(drive_files) <= 1:
+            for drive_file in tqdm(drive_files, desc="Downloading"):
+                path = download_pdf(
+                    service,
+                    drive_file["id"],
+                    drive_file["name"],
+                    args.cache_dir,
+                )
+                pdf_files.append(path)
+        else:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {
+                    executor.submit(
+                        download_pdf,
+                        service,
+                        drive_file["id"],
+                        drive_file["name"],
+                        args.cache_dir,
+                    ): drive_file
+                    for drive_file in drive_files
+                }
+                for future in tqdm(as_completed(futures), total=len(futures)):
+                    pdf_files.append(future.result())
 
     log.info(f"Total PDFs to process: {len(pdf_files)}")
     if not pdf_files:
@@ -134,7 +192,12 @@ def main(argv: list[str] | None = None) -> None:
 
     # --- Step 2: Convert PDFs to Markdown ---
     log.info("Initializing Docling OCR converter...")
-    converter, ocr_engine = create_ocr_converter()
+    converter, ocr_engine = create_ocr_converter(
+        num_threads=max(1, args.num_threads),
+        ocr_batch_size=max(1, args.ocr_batch_size),
+        enable_ocr=not args.disable_ocr,
+    )
+    log.info("Converter OCR profile: %s", ocr_engine)
     docling_docs: dict[str, object] = {}
     records = []
 
@@ -166,18 +229,24 @@ def main(argv: list[str] | None = None) -> None:
     chunker = create_chunker()
 
     if args.backend == "qdrant":
-        from .chunking import chunk_documents
-
         count = build_qdrant_collection(
-            args.qdrant_path, chunker, records, docling_docs, nlp_results
+            args.qdrant_path,
+            chunker,
+            records,
+            docling_docs,
+            nlp_results,
+            batch_size=max(1, args.vector_batch_size),
+            embedding_threads=max(1, args.embed_threads),
         )
         log.info(f"Qdrant collection: {count} vectors stored")
     else:
-        from .chunking import chunk_documents
-
         chunks = chunk_documents(chunker, records, docling_docs, nlp_results)
         _, collection = create_chroma_collection(db_dir)
-        count = insert_chunks(collection, chunks)
+        count = insert_chunks(
+            collection,
+            chunks,
+            batch_size=max(1, args.vector_batch_size),
+        )
         log.info(f"ChromaDB collection: {count} vectors stored")
 
     # --- Step 5: Save manifest ---

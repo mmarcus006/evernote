@@ -1,0 +1,90 @@
+{
+  "keywords_rake": [
+    "## preferred bank loan interest changes",
+    "olcto preferred bank",
+    "total amount due",
+    "10547 viper way",
+    "10540 heater couprt",
+    "1 oldfield",
+    "|----------------------|-----------|-------------|",
+    "month",
+    "e",
+    "93700",
+    "92330",
+    "757",
+    "72",
+    "55",
+    "54"
+  ],
+  "named_entities": {
+    "ORG": [
+      "Bank Loan Interest Changes",
+      "OlCto Preferred Bank"
+    ],
+    "DATE": [
+      "10547",
+      "Month"
+    ],
+    "PERCENT": [
+      "100%",
+      "27.13970%",
+      "33.92330%",
+      "38.93700%"
+    ],
+    "CARDINAL": [
+      "1",
+      "10540",
+      "18,445.55",
+      "21,171.72",
+      "54,374.29"
+    ],
+    "QUANTITY": [
+      "14,757.02   |\n|"
+    ],
+    "PERSON": [
+      "Heater Couprt"
+    ],
+    "PRODUCT": [
+      "Viper Way"
+    ]
+  },
+  "summary": "## Preferred Bank Loan Interest Changes Each Month\n\n| Total Amount Due     | E         | 54,374.29   |\n|----------------------|-----------|-------------|\n| | 1 Oldfield           | 27.13970% | 14,757.02   |\n| 10540 Heater Couprt  | 38.93700% | 21,171.72   | | 10547 Viper Way      | 33.92330% | 18,445.55   | | OlCto Preferred Bank |           | 54,374.29   |",
+  "sentiment": {
+    "label": "POSITIVE",
+    "score": 0.4588,
+    "compound": 0.4588,
+    "scores": {
+      "neg": 0.0,
+      "neu": 0.951,
+      "pos": 0.049,
+      "compound": 0.4588
+    }
+  },
+  "tfidf_topics": [
+    "374",
+    "54",
+    "29",
+    "bank",
+    "preferred",
+    "72",
+    "757",
+    "445",
+    "55",
+    "02"
+  ],
+  "document_type": "general",
+  "word_count": 59,
+  "char_count": 408,
+  "people": [
+    "Heater Couprt"
+  ],
+  "organizations": [
+    "Bank Loan Interest Changes",
+    "OlCto Preferred Bank"
+  ],
+  "dates": [
+    "10547",
+    "Month"
+  ],
+  "amounts": []
+}

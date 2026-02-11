@@ -1,0 +1,89 @@
+{
+  "keywords_rake": [
+    "## preferred bank loan interest changes",
+    "ficto preferred bank",
+    "total amount due",
+    "2590 conejo spectrum",
+    "15363 barranca parkway",
+    "loan fee",
+    "loan fee",
+    "2920 redhill",
+    "|------------------------|------------|------------|",
+    "month",
+    "937",
+    "84760",
+    "64",
+    "64",
+    "64"
+  ],
+  "named_entities": {
+    "ORG": [
+      "Bank Loan Interest Changes",
+      "Conejo Spectrum",
+      "FICto Preferred Bank"
+    ],
+    "PERSON": [
+      "Loan Fee"
+    ],
+    "CARDINAL": [
+      "18,625.41",
+      "2590",
+      "26,937.03",
+      "2920",
+      "64,035.00"
+    ],
+    "PERCENT": [
+      "28.84760%",
+      "29.08630%",
+      "42.06610%"
+    ],
+    "QUANTITY": [
+      "18,472.56  |"
+    ],
+    "DATE": [
+      "15363"
+    ],
+    "EVENT": [
+      "Barranca Parkway"
+    ]
+  },
+  "summary": "## Preferred Bank Loan Interest Changes Each Month\n\n|                        | Loan Fee | Loan Fee   |\n|------------------------|------------|------------|\n| Total Amount Due       | $          | 64,035.00  |\n| | 2590 Conejo Spectrum   | 42.06610%  | 26,937.03  |\n| 2920 Redhill           | 28.84760%  | 18,472.56  |\n| 15363 Barranca Parkway | 29.08630%  | 18,625.41  |\n| FICto Preferred Bank   |",
+  "sentiment": {
+    "label": "POSITIVE",
+    "score": 0.4588,
+    "compound": 0.4588,
+    "scores": {
+      "neg": 0.0,
+      "neu": 0.957,
+      "pos": 0.043,
+      "compound": 0.4588
+    }
+  },
+  "tfidf_topics": [
+    "64",
+    "035",
+    "00",
+    "loan",
+    "fee",
+    "18",
+    "preferred",
+    "bank",
+    "redhill",
+    "937"
+  ],
+  "document_type": "general",
+  "word_count": 67,
+  "char_count": 475,
+  "people": [
+    "Loan Fee"
+  ],
+  "organizations": [
+    "Bank Loan Interest Changes",
+    "Conejo Spectrum",
+    "FICto Preferred Bank"
+  ],
+  "dates": [
+    "15363"
+  ],
+  "amounts": []
+}

@@ -6,7 +6,6 @@ Uses three real PDF files from the project's output folder.
 from __future__ import annotations
 
 import logging
-import shutil
 import sys
 import time
 from pathlib import Path

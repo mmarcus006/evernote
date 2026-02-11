@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 
 from pipeline import (
     DocRecord,
@@ -18,8 +17,6 @@ from pipeline import (
     convert_pdfs,
     convert_single_pdf,
     create_chroma_collection,
-    create_chunker,
-    create_vlm_converter,
     discover_pdfs,
     ensure_output_dirs,
     extract_entities,

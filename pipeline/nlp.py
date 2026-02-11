@@ -27,7 +27,15 @@ def _get_spacy():
     if _nlp is None:
         import spacy
 
-        _nlp = spacy.load("en_core_web_sm")
+        try:
+            _nlp = spacy.load("en_core_web_sm")
+        except OSError:
+            log.warning(
+                "spaCy model en_core_web_sm not found; using blank English pipeline"
+            )
+            _nlp = spacy.blank("en")
+            if "sentencizer" not in _nlp.pipe_names:
+                _nlp.add_pipe("sentencizer")
     return _nlp
 
 

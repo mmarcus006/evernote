@@ -35,5 +35,17 @@ test = [
 py-modules = ["enex_parser", "extract_enex_schema", "main"]
 packages = ["pipeline"]
 
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+extend-exclude = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
