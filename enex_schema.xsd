@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- Auto-generated XSD from Evernote .enex export files -->
+  <!-- This schema was inferred from actual data, not the official DTD -->
+
+  <xs:element name="en-export" type="EnExportType"/>
+
+  <xs:complexType name="EnExportType">
+    <xs:sequence>
+      <xs:element name="note" type="EnExportNoteType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="application" type="xs:string" use="required"/>
+    <xs:attribute name="export-date" type="xs:string" use="required"/>
+    <xs:attribute name="version" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="EnExportNoteType">
+    <xs:sequence>
+      <xs:element name="content" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="created" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="note-attributes" type="EnExportNoteNoteAttributesType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="resource" type="EnExportNoteResourceType" minOccurs="1" maxOccurs="unbounded"/>
+      <xs:element name="title" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="updated" type="xs:string" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+
+  <xs:complexType name="EnExportNoteNoteAttributesType">
+    <xs:sequence>
+      <xs:element name="author" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="reminder-done-time" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="reminder-order" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="source" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="source-application" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="source-url" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+
+
+
+
+
+  <xs:complexType name="EnExportNoteResourceType">
+    <xs:sequence>
+      <xs:element name="data" type="EnExportNoteResourceDataType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="mime" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="resource-attributes" type="EnExportNoteResourceResourceAttributesType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="EnExportNoteResourceDataType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="encoding" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="EnExportNoteResourceResourceAttributesType">
+    <xs:sequence>
+      <xs:element name="file-name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="source-url" type="xs:string" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+
+
+
+</xs:schema>

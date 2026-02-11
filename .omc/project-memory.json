@@ -1,0 +1,108 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1770810727231,
+  "projectRoot": "/home/miller/projects/evernote",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pyproject.toml"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "pytest",
+        "version": null,
+        "category": "testing"
+      }
+    ],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "pytest",
+    "lintCommand": "ruff check",
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "enex_files": {
+      "path": "enex_files",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1770810727213,
+      "keyFiles": [
+        "Invoices.enex",
+        "Properties.enex",
+        "Property Tax.enex",
+        "X PRIVATE - Kristina  - Tax Folder.enex"
+      ]
+    },
+    "evernote.egg-info": {
+      "path": "evernote.egg-info",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1770810727218,
+      "keyFiles": [
+        "PKG-INFO",
+        "SOURCES.txt",
+        "dependency_links.txt",
+        "entry_points.txt",
+        "requires.txt"
+      ]
+    },
+    "output": {
+      "path": "output",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1770810727219,
+      "keyFiles": []
+    },
+    "pipeline": {
+      "path": "pipeline",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1770810727220,
+      "keyFiles": [
+        "__init__.py",
+        "__main__.py",
+        "chunking.py",
+        "cli.py",
+        "conversion.py"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 3,
+      "lastAccessed": 1770810727222,
+      "keyFiles": [
+        "__init__.py",
+        "conftest.py",
+        "test_pipeline.py"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

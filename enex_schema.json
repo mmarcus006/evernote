@@ -1,0 +1,209 @@
+{
+  "en-export": {
+    "element": "en-export",
+    "occurrences": 3,
+    "attributes": {
+      "application": {
+        "count": 3,
+        "sample": "Evernote",
+        "unique_values": [
+          "Evernote"
+        ]
+      },
+      "export-date": {
+        "count": 3,
+        "sample": "20260211T094422Z",
+        "unique_values": [
+          "20260211T094422Z",
+          "20260211T094615Z",
+          "20260211T094809Z"
+        ]
+      },
+      "version": {
+        "count": 3,
+        "sample": "11.2.1",
+        "unique_values": [
+          "11.2.1"
+        ]
+      }
+    },
+    "children": [
+      "note"
+    ],
+    "has_text_content": false,
+    "sample_text": null
+  },
+  "en-export/note": {
+    "element": "note",
+    "occurrences": 861,
+    "attributes": {},
+    "children": [
+      "content",
+      "created",
+      "note-attributes",
+      "resource",
+      "title",
+      "updated"
+    ],
+    "has_text_content": false,
+    "sample_text": null
+  },
+  "en-export/note/content": {
+    "element": "content",
+    "occurrences": 861,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\"><en-note><div><br/></div></en-note>"
+  },
+  "en-export/note/created": {
+    "element": "created",
+    "occurrences": 861,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "20250102T163446Z"
+  },
+  "en-export/note/note-attributes": {
+    "element": "note-attributes",
+    "occurrences": 861,
+    "attributes": {},
+    "children": [
+      "author",
+      "reminder-done-time",
+      "reminder-order",
+      "source",
+      "source-application",
+      "source-url"
+    ],
+    "has_text_content": false,
+    "sample_text": null
+  },
+  "en-export/note/note-attributes/author": {
+    "element": "author",
+    "occurrences": 752,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "Tamera Benson"
+  },
+  "en-export/note/note-attributes/reminder-done-time": {
+    "element": "reminder-done-time",
+    "occurrences": 1,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "20220311T171838Z"
+  },
+  "en-export/note/note-attributes/reminder-order": {
+    "element": "reminder-order",
+    "occurrences": 1,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "1461792441000"
+  },
+  "en-export/note/note-attributes/source": {
+    "element": "source",
+    "occurrences": 448,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "desktop.win"
+  },
+  "en-export/note/note-attributes/source-application": {
+    "element": "source-application",
+    "occurrences": 722,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "Evernote"
+  },
+  "en-export/note/note-attributes/source-url": {
+    "element": "source-url",
+    "occurrences": 2,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": null
+  },
+  "en-export/note/resource": {
+    "element": "resource",
+    "occurrences": 924,
+    "attributes": {},
+    "children": [
+      "data",
+      "mime",
+      "resource-attributes"
+    ],
+    "has_text_content": false,
+    "sample_text": null
+  },
+  "en-export/note/resource/data": {
+    "element": "data",
+    "occurrences": 924,
+    "attributes": {
+      "encoding": {
+        "count": 924,
+        "sample": "base64",
+        "unique_values": [
+          "base64"
+        ]
+      }
+    },
+    "children": [],
+    "has_text_content": true,
+    "sample_text": null
+  },
+  "en-export/note/resource/mime": {
+    "element": "mime",
+    "occurrences": 924,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "application/pdf"
+  },
+  "en-export/note/resource/resource-attributes": {
+    "element": "resource-attributes",
+    "occurrences": 924,
+    "attributes": {},
+    "children": [
+      "file-name",
+      "source-url"
+    ],
+    "has_text_content": false,
+    "sample_text": null
+  },
+  "en-export/note/resource/resource-attributes/file-name": {
+    "element": "file-name",
+    "occurrences": 924,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "2025_01_02_08_34_24.pdf"
+  },
+  "en-export/note/resource/resource-attributes/source-url": {
+    "element": "source-url",
+    "occurrences": 924,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": null
+  },
+  "en-export/note/title": {
+    "element": "title",
+    "occurrences": 861,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "1 Mason - Transfer of Property - 12/31/24"
+  },
+  "en-export/note/updated": {
+    "element": "updated",
+    "occurrences": 861,
+    "attributes": {},
+    "children": [],
+    "has_text_content": true,
+    "sample_text": "20250102T163558Z"
+  }
+}

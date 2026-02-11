@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Google Drive API credentials
+token.json
+credentials.json
+
+# Pipeline outputs
+qdrant_data/
+cache/
+output/
+
+# Evernote exports
+*.enex

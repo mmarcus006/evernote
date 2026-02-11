@@ -1,0 +1,39 @@
+[project]
+name = "evernote"
+version = "0.1.0"
+description = "Evernote ENEX parser and PDF-to-Vector-DB pipeline"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "docling",
+    "docling-core",
+    "google-api-python-client",
+    "google-auth-httplib2",
+    "google-auth-oauthlib",
+    "nltk",
+    "qdrant-client[fastembed]",
+    "rake-nltk",
+    "scikit-learn",
+    "sentence-transformers",
+    "spacy",
+    "torch",
+    "tqdm",
+    "transformers",
+    "vaderSentiment",
+]
+
+[project.scripts]
+pdf-pipeline = "pipeline.cli:main"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[tool.setuptools]
+py-modules = ["enex_parser", "extract_enex_schema", "main"]
+packages = ["pipeline"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
