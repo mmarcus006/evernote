@@ -103,6 +103,133 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "pyproject.toml",
+      "accessCount": 2,
+      "lastAccessed": 1770821729495,
+      "type": "file"
+    },
+    {
+      "path": "main.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821729512,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/__init__.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821729521,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/__main__.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821729529,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/models.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821729593,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/cli.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821729600,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 2,
+      "lastAccessed": 1770821729665,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/conversion.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821734002,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/sources.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821734504,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/nlp.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821735029,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/chunking.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821735211,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/utils.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821735708,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/vectorstores.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821736178,
+      "type": "file"
+    },
+    {
+      "path": "tests/conftest.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821736645,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_pipeline.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821737020,
+      "type": "file"
+    },
+    {
+      "path": "enex_parser.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821737716,
+      "type": "file"
+    },
+    {
+      "path": "extract_enex_schema.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821738073,
+      "type": "file"
+    },
+    {
+      "path": "pdf_pipeline.py",
+      "accessCount": 2,
+      "lastAccessed": 1770821738494,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1770821777375,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1770821800438,
+      "type": "file"
+    },
+    {
+      "path": "tests/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1770821815870,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }

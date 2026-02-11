@@ -1,6 +1,7 @@
 """CLI shim -- delegates to pipeline.cli.main().
 
 Usage:
+    python pdf_pipeline.py
     python pdf_pipeline.py --local-dir ./output/Properties
     python pdf_pipeline.py --folder-id <DRIVE_FOLDER_ID>
 """

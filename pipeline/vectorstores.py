@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import logging
 from pathlib import Path
@@ -48,6 +49,15 @@ def insert_chunks(
     batch_size: int = 50,
 ) -> int:
     """Upsert chunks into a ChromaDB collection. Returns total count."""
+    if not chunks:
+        return collection.count()
+
+    # Remove prior chunks for documents being updated so chunk-count changes
+    # don't leave stale vectors behind.
+    source_paths = sorted({c["source_path"] for c in chunks if c.get("source_path")})
+    for source_path in source_paths:
+        collection.delete(where={"source_path": source_path})
+
     for i in range(0, len(chunks), batch_size):
         batch = chunks[i : i + batch_size]
         ids = [c["id"] for c in batch]
@@ -107,6 +117,7 @@ def build_qdrant_collection(
     embedding_dim: int = EMBEDDING_DIM,
     batch_size: int = 128,
     embedding_threads: int | None = None,
+    recreate_collection: bool = False,
 ) -> int:
     """Chunk all documents and insert into Qdrant with FastEmbed embeddings.
 
@@ -114,24 +125,54 @@ def build_qdrant_collection(
     """
     from fastembed import TextEmbedding
     from qdrant_client import QdrantClient
-    from qdrant_client.models import Distance, PointStruct, VectorParams
+    from qdrant_client.models import (
+        Distance,
+        FieldCondition,
+        Filter,
+        MatchValue,
+        PointStruct,
+        VectorParams,
+    )
 
     client = QdrantClient(path=str(qdrant_path))
 
-    if client.collection_exists(collection_name):
+    collection_exists = client.collection_exists(collection_name)
+    if recreate_collection and collection_exists:
         client.delete_collection(collection_name)
+        collection_exists = False
 
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=VectorParams(
-            size=embedding_dim,
-            distance=Distance.COSINE,
-        ),
-    )
+    if not collection_exists:
+        client.create_collection(
+            collection_name=collection_name,
+            vectors_config=VectorParams(
+                size=embedding_dim,
+                distance=Distance.COSINE,
+            ),
+        )
 
     successful = [r for r in records if r.status == "success"]
+
+    # Remove all existing chunks for docs being refreshed.
+    for record in successful:
+        source_path = record.filepath
+        if not source_path:
+            continue
+        client.delete(
+            collection_name=collection_name,
+            points_selector=Filter(
+                must=[
+                    FieldCondition(
+                        key="source_path",
+                        match=MatchValue(value=source_path),
+                    )
+                ]
+            ),
+            wait=True,
+        )
+
     all_documents: list[str] = []
     all_metadata: list[dict[str, Any]] = []
+    all_ids: list[str] = []
 
     for record in successful:
         doc = docling_docs.get(record.filename)
@@ -164,13 +205,15 @@ def build_qdrant_collection(
                 "amounts": ", ".join(analysis.get("amounts", [])[:10]),
                 "word_count": analysis.get("word_count", 0),
             }
+            id_source = f"{record.filepath}::{chunk_idx}"
             all_documents.append(ctx_text)
             all_metadata.append(metadata)
+            all_ids.append(hashlib.sha1(id_source.encode("utf-8")).hexdigest())
 
     if not all_documents:
-        log.warning("No chunks to insert")
+        count = client.count(collection_name=collection_name).count
         client.close()
-        return 0
+        return count
 
     log.info(f"Embedding {len(all_documents)} chunks with {embedding_model_id}...")
     embedding_model = TextEmbedding(
@@ -184,7 +227,7 @@ def build_qdrant_collection(
         batch_end = min(i + normalized_batch_size, len(all_documents))
         points = [
             PointStruct(
-                id=i + j,
+                id=all_ids[i + j],
                 vector=embeddings[i + j].tolist(),
                 payload=all_metadata[i + j],
             )

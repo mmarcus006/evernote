@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Any
 
@@ -44,10 +45,12 @@ def chunk_documents(
         analysis = nlp_results.get(record.filename, {})
 
         try:
+            source_key = record.filepath or record.filename
+            source_hash = hashlib.sha1(source_key.encode("utf-8")).hexdigest()[:16]
             for chunk_idx, chunk in enumerate(chunker.chunk(dl_doc=doc)):
                 contextualized_text = chunker.contextualize(chunk)
                 chunk_data = {
-                    "id": f"{record.filename}::chunk_{chunk_idx:04d}",
+                    "id": f"{source_hash}::chunk_{chunk_idx:04d}",
                     "text": contextualized_text,
                     "raw_text": chunk.text,
                     "source_file": record.filename,

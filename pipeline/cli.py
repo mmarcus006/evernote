@@ -1,16 +1,20 @@
 """CLI entrypoint for the PDF -> Markdown -> NLP -> Vector DB pipeline.
 
 Usage:
+    python -m pipeline
     python -m pipeline --folder-id <DRIVE_FOLDER_ID>
     python -m pipeline --local-dir ./output/Properties
     python -m pipeline --local-dir ./output/Properties --skip-nlp
     python -m pipeline --local-dir ./output/Properties --backend qdrant
+    python -m pipeline --local-dir ./output/Properties --force-reprocess
+    python -m pipeline --local-dir ./output/Properties --rebuild-index
 """
 
 from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 import json
 import logging
 from logging.handlers import RotatingFileHandler
@@ -127,10 +131,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="PDF -> Markdown -> NLP -> Vector DB pipeline"
     )
-    src = parser.add_mutually_exclusive_group(required=True)
+    src = parser.add_mutually_exclusive_group(required=False)
     src.add_argument("--folder-id", help="Google Drive folder ID containing PDFs")
     src.add_argument(
-        "--local-dir", type=Path, help="Local directory with PDFs (skip Drive)"
+        "--local-dir",
+        type=Path,
+        help=(
+            "Local directory with PDFs (skip Drive). "
+            "Defaults to --output-dir when no source argument is provided."
+        ),
     )
 
     parser.add_argument(
@@ -210,6 +219,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Disable OCR for faster conversion on text PDFs",
     )
     parser.add_argument(
+        "--force-reprocess",
+        action="store_true",
+        help="Process every PDF even if unchanged in saved pipeline state",
+    )
+    parser.add_argument(
+        "--rebuild-index",
+        action="store_true",
+        help="Drop and recreate the Qdrant collection before upserting",
+    )
+    parser.add_argument(
         "--detailed-logging",
         action="store_true",
         help="Enable detailed logging (thread, file/line, rotating log file)",
@@ -223,7 +242,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "(default: <output-dir>/pipeline.log in detailed mode)"
         ),
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.folder_id is None and args.local_dir is None:
+        args.local_dir = args.output_dir
+
+    return args
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -239,7 +262,14 @@ def main(argv: list[str] | None = None) -> None:
         download_pdf,
         list_drive_pdfs,
     )
-    from .utils import ensure_output_dirs, save_manifest
+    from .utils import (
+        ensure_output_dirs,
+        file_fingerprint,
+        is_unchanged_file,
+        load_pipeline_state,
+        save_manifest,
+        save_pipeline_state,
+    )
     from .vectorstores import (
         build_qdrant_collection,
         create_chroma_collection,
@@ -322,7 +352,7 @@ def main(argv: list[str] | None = None) -> None:
                     pdf_files.append(future.result())
 
     log.info("Input discovery completed in %.2fs", time.perf_counter() - step1_t0)
-    log.info(f"Total PDFs to process: {len(pdf_files)}")
+    log.info(f"Total PDFs discovered: {len(pdf_files)}")
     if pdf_files:
         sample_files = ", ".join(path.name for path in pdf_files[:5])
         log.debug("Sample input files: %s", sample_files)
@@ -331,25 +361,55 @@ def main(argv: list[str] | None = None) -> None:
         log.warning("No PDFs found. Exiting.")
         sys.exit(0)
 
+    # --- Resume check: skip unchanged PDFs ---
+    state = load_pipeline_state(args.output_dir)
+    state_files: dict[str, dict[str, Any]] = state.setdefault("files", {})
+    pdf_files_to_process: list[Path] = []
+    skipped_unchanged = 0
+    for pdf_path in pdf_files:
+        state_key = str(pdf_path.resolve())
+        previous = state_files.get(state_key)
+        md_file = md_dir / f"{pdf_path.stem}.md"
+        nlp_file = nlp_dir / f"{pdf_path.stem}_nlp.json"
+        has_output_artifacts = md_file.exists() and (args.skip_nlp or nlp_file.exists())
+        if (
+            not args.force_reprocess
+            and has_output_artifacts
+            and is_unchanged_file(pdf_path, previous)
+        ):
+            skipped_unchanged += 1
+            continue
+        pdf_files_to_process.append(pdf_path)
+
+    log.info(
+        "Resume check: %s unchanged skipped, %s queued for processing",
+        skipped_unchanged,
+        len(pdf_files_to_process),
+    )
+
     # --- Step 2: Convert PDFs to Markdown ---
     step2_t0 = time.perf_counter()
-    log.info("Initializing Docling OCR converter...")
-    converter, ocr_engine = create_ocr_converter(
-        num_threads=max(1, args.num_threads),
-        ocr_batch_size=max(1, args.ocr_batch_size),
-        enable_ocr=not args.disable_ocr,
-    )
-    log.info("Converter OCR profile: %s", ocr_engine)
     docling_docs: dict[str, object] = {}
     records = []
 
-    for pdf_path in tqdm(pdf_files, desc="Converting PDFs"):
-        record, doc = convert_single_pdf(converter, pdf_path)
-        records.append(record)
-        if doc is not None:
-            docling_docs[record.filename] = doc
-            md_file = md_dir / f"{pdf_path.stem}.md"
-            md_file.write_text(record.markdown, encoding="utf-8")
+    if pdf_files_to_process:
+        log.info("Initializing Docling OCR converter...")
+        converter, ocr_engine = create_ocr_converter(
+            num_threads=max(1, args.num_threads),
+            ocr_batch_size=max(1, args.ocr_batch_size),
+            enable_ocr=not args.disable_ocr,
+        )
+        log.info("Converter OCR profile: %s", ocr_engine)
+
+        for pdf_path in tqdm(pdf_files_to_process, desc="Converting PDFs"):
+            record, doc = convert_single_pdf(converter, pdf_path)
+            records.append(record)
+            if doc is not None:
+                docling_docs[record.filename] = doc
+                md_file = md_dir / f"{pdf_path.stem}.md"
+                md_file.write_text(record.markdown, encoding="utf-8")
+    else:
+        log.info("No new/changed PDFs detected; conversion stage skipped.")
 
     step2_elapsed = time.perf_counter() - step2_t0
     success = [r for r in records if r.status == "success"]
@@ -364,7 +424,9 @@ def main(argv: list[str] | None = None) -> None:
     # --- Step 3: NLP Analysis ---
     step3_t0 = time.perf_counter()
     nlp_results: dict[str, dict[str, Any]] = {}
-    if not args.skip_nlp:
+    if args.skip_nlp:
+        log.info("NLP stage disabled via --skip-nlp")
+    elif success:
         log.info("Running NLP analysis...")
         init_nlp()
         nlp_results = run_nlp_analysis(records)
@@ -372,6 +434,8 @@ def main(argv: list[str] | None = None) -> None:
             nlp_file = nlp_dir / f"{Path(filename).stem}_nlp.json"
             with open(nlp_file, "w") as f:
                 json.dump(analysis, f, indent=2, default=str)
+    else:
+        log.info("No successful new/changed docs; NLP stage skipped.")
     log.info("NLP stage completed in %.2fs", time.perf_counter() - step3_t0)
 
     # --- Step 4: Chunk and store in vector DB ---
@@ -388,6 +452,7 @@ def main(argv: list[str] | None = None) -> None:
             nlp_results,
             batch_size=max(1, args.vector_batch_size),
             embedding_threads=max(1, args.embed_threads),
+            recreate_collection=args.rebuild_index,
         )
         log.info(f"Qdrant collection: {count} vectors stored")
     else:
@@ -406,16 +471,47 @@ def main(argv: list[str] | None = None) -> None:
     manifest_path = save_manifest(args.output_dir, records, nlp_results)
     log.info("Manifest stage completed in %.2fs", time.perf_counter() - step5_t0)
 
+    # --- Step 6: Save pipeline state ---
+    step6_t0 = time.perf_counter()
+    current_keys = {str(path.resolve()) for path in pdf_files}
+    for key in list(state_files):
+        if key not in current_keys:
+            state_files.pop(key, None)
+
+    processed_at = datetime.now(timezone.utc).isoformat()
+    for record in records:
+        state_key = str(Path(record.filepath).resolve())
+        entry: dict[str, Any] = {
+            "filename": record.filename,
+            "status": record.status,
+            "processed_at": processed_at,
+        }
+        file_path = Path(record.filepath)
+        if file_path.exists():
+            try:
+                entry.update(file_fingerprint(file_path))
+            except OSError:
+                pass
+        if record.status == "error" and record.error:
+            entry["error"] = record.error[:500]
+        state_files[state_key] = entry
+
+    state_path = save_pipeline_state(args.output_dir, state)
+    log.info("State stage completed in %.2fs", time.perf_counter() - step6_t0)
+
     # --- Summary ---
     total_time = sum(r.conversion_time_s for r in records)
     log.info("=" * 60)
     log.info("PIPELINE COMPLETE")
-    log.info(f"  PDFs processed:  {len(records)}")
+    log.info(f"  PDFs discovered: {len(pdf_files)}")
+    log.info(f"  Processed now:   {len(records)}")
+    log.info(f"  Skipped cached:  {skipped_unchanged}")
     log.info(f"  Succeeded:       {len(success)}")
     log.info(f"  Failed:          {len(failed)}")
     log.info(f"  Vectors stored:  {count}")
     log.info(f"  Markdown dir:    {md_dir}")
     log.info(f"  Manifest:        {manifest_path}")
+    log.info(f"  State:           {state_path}")
     log.info(f"  Total conv time: {total_time:.1f}s")
     log.info(f"  Total runtime:   {time.perf_counter() - overall_t0:.1f}s")
     if failed:

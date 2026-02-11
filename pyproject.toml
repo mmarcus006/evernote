@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "evernote"
 version = "0.1.0"
@@ -7,10 +11,12 @@ requires-python = ">=3.13"
 dependencies = [
     "docling",
     "docling-core",
+    "easyocr",
     "google-api-python-client",
     "google-auth-httplib2",
     "google-auth-oauthlib",
     "nltk",
+    "opencv-python-headless==4.13.0.92",
     "qdrant-client[fastembed]",
     "rake-nltk",
     "scikit-learn",
