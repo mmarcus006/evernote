@@ -3,3 +3,8 @@
 {"t":0,"agent":"a3fc574","agent_type":"Explore","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a3fc574","agent_type":"Explore","event":"agent_stop","success":true,"duration_ms":796033}
 {"t":0,"agent":"a6bf624","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"acdde61","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"keyword_detected","keyword":"pipeline"}
+{"t":0,"agent":"aa2ab24","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"keyword_detected","keyword":"pipeline"}
+{"t":0,"agent":"aedf065","agent_type":"unknown","event":"agent_stop","success":true}
