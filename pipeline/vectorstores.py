@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import importlib
 import logging
 from pathlib import Path
 from typing import Any
 
+from .models import DocRecord
 from .utils import COLLECTION_NAME, EMBEDDING_DIM, EMBEDDING_MODEL
 
 log = logging.getLogger(__name__)
@@ -25,8 +27,8 @@ def create_chroma_collection(
 
     Returns (client, collection).
     """
-    import chromadb
-    from chromadb.utils import embedding_functions
+    chromadb = importlib.import_module("chromadb")
+    embedding_functions = importlib.import_module("chromadb.utils.embedding_functions")
 
     client = chromadb.PersistentClient(path=str(db_dir))
     embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
@@ -97,9 +99,9 @@ def search_collection(
 def build_qdrant_collection(
     qdrant_path: Path,
     chunker: Any,
-    records: list,
+    records: list[DocRecord],
     docling_docs: dict[str, Any],
-    nlp_results: dict[str, dict],
+    nlp_results: dict[str, dict[str, Any]],
     collection_name: str = COLLECTION_NAME,
     embedding_model_id: str = EMBEDDING_MODEL,
     embedding_dim: int = EMBEDDING_DIM,
@@ -129,7 +131,7 @@ def build_qdrant_collection(
 
     successful = [r for r in records if r.status == "success"]
     all_documents: list[str] = []
-    all_metadata: list[dict] = []
+    all_metadata: list[dict[str, Any]] = []
 
     for record in successful:
         doc = docling_docs.get(record.filename)

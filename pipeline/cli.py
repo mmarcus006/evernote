@@ -13,15 +13,117 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import os
+import subprocess
 import sys
+import time
 from pathlib import Path
+from typing import Any
 
 log = logging.getLogger(__name__)
 
 
+def _detect_gpu_vram_mib() -> int:
+    try:
+        completed = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=memory.total",
+                "--format=csv,noheader,nounits",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return 0
+
+    first_line = completed.stdout.strip().splitlines()
+    if not first_line:
+        return 0
+
+    try:
+        return int(first_line[0].strip())
+    except ValueError:
+        return 0
+
+
+def _recommended_runtime_defaults() -> dict[str, int]:
+    cpu_count = max(1, os.cpu_count() or 1)
+    gpu_vram_mib = _detect_gpu_vram_mib()
+    has_gpu = gpu_vram_mib > 0
+
+    max_workers = min(64, max(16, cpu_count * 2))
+    num_threads = min(24, max(8, cpu_count))
+    embed_threads = min(24, max(8, cpu_count))
+    ocr_batch_size = 12 if gpu_vram_mib >= 8 * 1024 else (8 if has_gpu else 4)
+    vector_batch_size = 256 if has_gpu else 128
+
+    return {
+        "max_workers": max_workers,
+        "num_threads": num_threads,
+        "embed_threads": embed_threads,
+        "ocr_batch_size": ocr_batch_size,
+        "vector_batch_size": vector_batch_size,
+    }
+
+
+def _setup_logging(
+    *,
+    verbose: bool,
+    detailed_logging: bool,
+    output_dir: Path,
+    log_file: Path | None,
+) -> None:
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+
+    root_level = logging.DEBUG if verbose else logging.INFO
+    root_logger.setLevel(root_level)
+
+    console_fmt = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+    detailed_fmt = (
+        "%(asctime)s | %(levelname)-8s | %(name)s | "
+        "%(threadName)s | %(filename)s:%(lineno)d | %(message)s"
+    )
+    formatter = logging.Formatter(
+        detailed_fmt if detailed_logging else console_fmt,
+        "%Y-%m-%d %H:%M:%S",
+    )
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(root_level)
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+
+    resolved_log_file = log_file
+    if resolved_log_file is None and detailed_logging:
+        resolved_log_file = output_dir / "pipeline.log"
+
+    if resolved_log_file is not None:
+        resolved_log_file.parent.mkdir(parents=True, exist_ok=True)
+        file_handler = RotatingFileHandler(
+            resolved_log_file,
+            maxBytes=20 * 1024 * 1024,
+            backupCount=5,
+            encoding="utf-8",
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(logging.Formatter(detailed_fmt, "%Y-%m-%d %H:%M:%S"))
+        root_logger.addHandler(file_handler)
+
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("transformers").setLevel(logging.WARNING)
+    logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments."""
+    tuned_defaults = _recommended_runtime_defaults()
+
     parser = argparse.ArgumentParser(
         description="PDF -> Markdown -> NLP -> Vector DB pipeline"
     )
@@ -75,37 +177,51 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--max-workers",
         type=int,
-        default=min(32, os.cpu_count() or 4),
+        default=tuned_defaults["max_workers"],
         help="Worker threads for parallel I/O and ingestion",
     )
     parser.add_argument(
         "--num-threads",
         type=int,
-        default=max(4, os.cpu_count() or 4),
+        default=tuned_defaults["num_threads"],
         help="Docling/FastEmbed internal thread count",
     )
     parser.add_argument(
         "--ocr-batch-size",
         type=int,
-        default=8,
+        default=tuned_defaults["ocr_batch_size"],
         help="OCR batch size for Docling",
     )
     parser.add_argument(
         "--embed-threads",
         type=int,
-        default=max(4, os.cpu_count() or 4),
+        default=tuned_defaults["embed_threads"],
         help="FastEmbed embedding thread count",
     )
     parser.add_argument(
         "--vector-batch-size",
         type=int,
-        default=128,
+        default=tuned_defaults["vector_batch_size"],
         help="Vector DB upsert batch size",
     )
     parser.add_argument(
         "--disable-ocr",
         action="store_true",
         help="Disable OCR for faster conversion on text PDFs",
+    )
+    parser.add_argument(
+        "--detailed-logging",
+        action="store_true",
+        help="Enable detailed logging (thread, file/line, rotating log file)",
+    )
+    parser.add_argument(
+        "--log-file",
+        type=Path,
+        default=None,
+        help=(
+            "Optional log file path "
+            "(default: <output-dir>/pipeline.log in detailed mode)"
+        ),
     )
     return parser.parse_args(argv)
 
@@ -131,9 +247,28 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     args = parse_args(argv)
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s",
+    _setup_logging(
+        verbose=args.verbose,
+        detailed_logging=args.detailed_logging,
+        output_dir=args.output_dir,
+        log_file=args.log_file,
+    )
+
+    overall_t0 = time.perf_counter()
+    log.info(
+        "Runtime tuning: max_workers=%s num_threads=%s embed_threads=%s "
+        "ocr_batch_size=%s vector_batch_size=%s",
+        args.max_workers,
+        args.num_threads,
+        args.embed_threads,
+        args.ocr_batch_size,
+        args.vector_batch_size,
+    )
+    log.debug(
+        "Logging setup: verbose=%s detailed=%s log_file=%s",
+        args.verbose,
+        args.detailed_logging,
+        args.log_file,
     )
 
     # Create directories
@@ -142,6 +277,7 @@ def main(argv: list[str] | None = None) -> None:
     nlp_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Step 1: Get PDF files ---
+    step1_t0 = time.perf_counter()
     if args.local_dir:
         log.info(f"Using local PDFs from: {args.local_dir}")
         pdf_files = discover_pdfs(args.local_dir)
@@ -185,12 +321,18 @@ def main(argv: list[str] | None = None) -> None:
                 for future in tqdm(as_completed(futures), total=len(futures)):
                     pdf_files.append(future.result())
 
+    log.info("Input discovery completed in %.2fs", time.perf_counter() - step1_t0)
     log.info(f"Total PDFs to process: {len(pdf_files)}")
+    if pdf_files:
+        sample_files = ", ".join(path.name for path in pdf_files[:5])
+        log.debug("Sample input files: %s", sample_files)
+
     if not pdf_files:
         log.warning("No PDFs found. Exiting.")
         sys.exit(0)
 
     # --- Step 2: Convert PDFs to Markdown ---
+    step2_t0 = time.perf_counter()
     log.info("Initializing Docling OCR converter...")
     converter, ocr_engine = create_ocr_converter(
         num_threads=max(1, args.num_threads),
@@ -209,12 +351,19 @@ def main(argv: list[str] | None = None) -> None:
             md_file = md_dir / f"{pdf_path.stem}.md"
             md_file.write_text(record.markdown, encoding="utf-8")
 
+    step2_elapsed = time.perf_counter() - step2_t0
     success = [r for r in records if r.status == "success"]
     failed = [r for r in records if r.status == "error"]
-    log.info(f"Conversion: {len(success)} succeeded, {len(failed)} failed")
+    log.info(
+        "Conversion: %s succeeded, %s failed (%.2fs)",
+        len(success),
+        len(failed),
+        step2_elapsed,
+    )
 
     # --- Step 3: NLP Analysis ---
-    nlp_results: dict[str, dict] = {}
+    step3_t0 = time.perf_counter()
+    nlp_results: dict[str, dict[str, Any]] = {}
     if not args.skip_nlp:
         log.info("Running NLP analysis...")
         init_nlp()
@@ -223,8 +372,10 @@ def main(argv: list[str] | None = None) -> None:
             nlp_file = nlp_dir / f"{Path(filename).stem}_nlp.json"
             with open(nlp_file, "w") as f:
                 json.dump(analysis, f, indent=2, default=str)
+    log.info("NLP stage completed in %.2fs", time.perf_counter() - step3_t0)
 
     # --- Step 4: Chunk and store in vector DB ---
+    step4_t0 = time.perf_counter()
     log.info("Chunking and building vector database...")
     chunker = create_chunker()
 
@@ -248,9 +399,12 @@ def main(argv: list[str] | None = None) -> None:
             batch_size=max(1, args.vector_batch_size),
         )
         log.info(f"ChromaDB collection: {count} vectors stored")
+    log.info("Vector stage completed in %.2fs", time.perf_counter() - step4_t0)
 
     # --- Step 5: Save manifest ---
+    step5_t0 = time.perf_counter()
     manifest_path = save_manifest(args.output_dir, records, nlp_results)
+    log.info("Manifest stage completed in %.2fs", time.perf_counter() - step5_t0)
 
     # --- Summary ---
     total_time = sum(r.conversion_time_s for r in records)
@@ -263,6 +417,7 @@ def main(argv: list[str] | None = None) -> None:
     log.info(f"  Markdown dir:    {md_dir}")
     log.info(f"  Manifest:        {manifest_path}")
     log.info(f"  Total conv time: {total_time:.1f}s")
+    log.info(f"  Total runtime:   {time.perf_counter() - overall_t0:.1f}s")
     if failed:
         log.warning("Failed files:")
         for r in failed:

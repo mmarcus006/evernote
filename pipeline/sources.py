@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 log = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ def authenticate_drive(credentials_file: Path, token_file: Path):
     return creds
 
 
-def list_drive_pdfs(service, folder_id: str) -> list[dict]:
+def list_drive_pdfs(service, folder_id: str) -> list[dict[str, Any]]:
     """List all PDF files in a Google Drive folder (non-recursive)."""
     results = []
     page_token = None

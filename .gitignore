@@ -20,3 +20,10 @@ output/
 
 # Evernote exports
 *.enex
+
+# Documents
+*.md
+*.pdf
+
+# Logs
+*.log

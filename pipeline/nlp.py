@@ -57,7 +57,7 @@ def _get_vader():
     return _vader
 
 
-def init_nlp() -> tuple:
+def init_nlp() -> tuple[Any, Any, Any]:
     """Load all NLP models once. Returns (spacy_nlp, rake, vader)."""
     import nltk
 
@@ -162,13 +162,13 @@ def extract_tfidf_topics(texts: list[str], top_n: int = 10) -> list[list[str]]:
     vectorizer = TfidfVectorizer(
         max_features=5000, stop_words="english", max_df=0.85, min_df=1
     )
-    matrix = vectorizer.fit_transform(texts)
-    features = vectorizer.get_feature_names_out()
+    matrix: Any = vectorizer.fit_transform(texts)
+    features: Any = vectorizer.get_feature_names_out()
     topics: list[list[str]] = []
     for i in range(matrix.shape[0]):
-        row = matrix[i].toarray().flatten()
-        top_idx = row.argsort()[-top_n:][::-1]
-        topics.append([features[j] for j in top_idx if row[j] > 0])
+        row: Any = matrix[i].toarray().flatten()
+        top_idx: Any = row.argsort()[-top_n:][::-1]
+        topics.append([str(features[j]) for j in top_idx if row[j] > 0])
     return topics
 
 
@@ -236,11 +236,11 @@ def classify_document_type(text: str) -> str:
             "claim",
         ],
     }
-    scores = {
+    scores: dict[str, int] = {
         doc_type: sum(1 for t in terms if t in text_lower)
         for doc_type, terms in patterns.items()
     }
-    best = max(scores, key=scores.get)
+    best = max(scores, key=lambda doc_type: scores[doc_type])
     return best if scores[best] >= 2 else "general"
 
 
