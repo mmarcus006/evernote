@@ -105,81 +105,111 @@
   },
   "hotPaths": [
     {
-      "path": "pyproject.toml",
-      "accessCount": 2,
-      "lastAccessed": 1770821729495,
-      "type": "file"
+      "path": "",
+      "accessCount": 26,
+      "lastAccessed": 1770873076893,
+      "type": "directory"
     },
     {
-      "path": "main.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821729512,
+      "path": "output/markdown",
+      "accessCount": 13,
+      "lastAccessed": 1770867471186,
+      "type": "directory"
+    },
+    {
+      "path": "pipeline/cli.py",
+      "accessCount": 5,
+      "lastAccessed": 1770873131357,
       "type": "file"
     },
     {
       "path": "pipeline/__init__.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821729521,
+      "accessCount": 5,
+      "lastAccessed": 1770873131803,
       "type": "file"
     },
     {
-      "path": "pipeline/__main__.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821729529,
+      "path": "pipeline/utils.py",
+      "accessCount": 5,
+      "lastAccessed": 1770873132350,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/conversion.py",
+      "accessCount": 5,
+      "lastAccessed": 1770873142720,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/sources.py",
+      "accessCount": 4,
+      "lastAccessed": 1770873089744,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/vectorstores.py",
+      "accessCount": 4,
+      "lastAccessed": 1770873090128,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/nlp.py",
+      "accessCount": 4,
+      "lastAccessed": 1770873090571,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/chunking.py",
+      "accessCount": 4,
+      "lastAccessed": 1770873090903,
       "type": "file"
     },
     {
       "path": "pipeline/models.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821729593,
+      "accessCount": 4,
+      "lastAccessed": 1770873091618,
       "type": "file"
     },
     {
-      "path": "pipeline/cli.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821729600,
+      "path": "pyproject.toml",
+      "accessCount": 4,
+      "lastAccessed": 1770873142717,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/__main__.py",
+      "accessCount": 3,
+      "lastAccessed": 1770873081723,
+      "type": "file"
+    },
+    {
+      "path": "enex_parser.py",
+      "accessCount": 3,
+      "lastAccessed": 1770873083192,
+      "type": "file"
+    },
+    {
+      "path": "main.py",
+      "accessCount": 3,
+      "lastAccessed": 1770873083764,
+      "type": "file"
+    },
+    {
+      "path": "pdf_pipeline.py",
+      "accessCount": 3,
+      "lastAccessed": 1770873084733,
+      "type": "file"
+    },
+    {
+      "path": "process_drive_folder_pdfs.ipynb",
+      "accessCount": 3,
+      "lastAccessed": 1770873695041,
       "type": "file"
     },
     {
       "path": "README.md",
       "accessCount": 2,
       "lastAccessed": 1770821729665,
-      "type": "file"
-    },
-    {
-      "path": "pipeline/conversion.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821734002,
-      "type": "file"
-    },
-    {
-      "path": "pipeline/sources.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821734504,
-      "type": "file"
-    },
-    {
-      "path": "pipeline/nlp.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821735029,
-      "type": "file"
-    },
-    {
-      "path": "pipeline/chunking.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821735211,
-      "type": "file"
-    },
-    {
-      "path": "pipeline/utils.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821735708,
-      "type": "file"
-    },
-    {
-      "path": "pipeline/vectorstores.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821736178,
       "type": "file"
     },
     {
@@ -195,21 +225,21 @@
       "type": "file"
     },
     {
-      "path": "enex_parser.py",
-      "accessCount": 2,
-      "lastAccessed": 1770821737716,
-      "type": "file"
-    },
-    {
       "path": "extract_enex_schema.py",
       "accessCount": 2,
       "lastAccessed": 1770821738073,
       "type": "file"
     },
     {
-      "path": "pdf_pipeline.py",
+      "path": "output/markdown/01012026_C.G. Landscape, Inc.md",
       "accessCount": 2,
-      "lastAccessed": 1770821738494,
+      "lastAccessed": 1770867479922,
+      "type": "file"
+    },
+    {
+      "path": "pipeline/AGENTS.md",
+      "accessCount": 2,
+      "lastAccessed": 1770873088942,
       "type": "file"
     },
     {
@@ -219,15 +249,39 @@
       "type": "file"
     },
     {
-      "path": "pipeline/AGENTS.md",
-      "accessCount": 1,
-      "lastAccessed": 1770821800438,
-      "type": "file"
-    },
-    {
       "path": "tests/AGENTS.md",
       "accessCount": 1,
       "lastAccessed": 1770821815870,
+      "type": "file"
+    },
+    {
+      "path": "enex_files",
+      "accessCount": 1,
+      "lastAccessed": 1770867342925,
+      "type": "directory"
+    },
+    {
+      "path": "output",
+      "accessCount": 1,
+      "lastAccessed": 1770867375174,
+      "type": "directory"
+    },
+    {
+      "path": "output/markdown/01012025_3522.md",
+      "accessCount": 1,
+      "lastAccessed": 1770867441500,
+      "type": "file"
+    },
+    {
+      "path": "output/markdown/01082026_EDISON.md",
+      "accessCount": 1,
+      "lastAccessed": 1770867441873,
+      "type": "file"
+    },
+    {
+      "path": "output/markdown/01152026_Account Summary.md",
+      "accessCount": 1,
+      "lastAccessed": 1770867442934,
       "type": "file"
     }
   ],
